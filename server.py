@@ -86,7 +86,7 @@ class Usuarios(Resource):
     # Post:    
     @swagger.tags('usuarios')
     @swagger.reorder_with(UsuarioModel, response_code=200, summary="Adicionar Usuário")
-    @swagger.parameter(_in='query', name='query', schema=UsuarioModel, required=True, description='query')
+    @swagger.parameter(_in='query', name='usuarios', schema=UsuarioModel, required=True, description='campos')
     def post(self, _parser):
         """
         Adicionar um novo Usuário
@@ -129,14 +129,15 @@ class Usuario(Resource):
     # Put:
     @swagger.tags('usuarios')
     @swagger.response(response_code=200)
-    @swagger.parameter(_in='query', name='query', schema=UsuarioModel, required=True, description='query')
-    def put(self, login):
+    @swagger.parameter(_in='query', name='usuarios', schema=UsuarioModel, required=True, description='campos') 
+    def put(self, login, _parser):
         """
         Atualiza as informações de um usuário específico.
         :param login: Identificador do login
         """
         if login in PEOPLE:
             # Valida o request body através do schema model:
+            # Se um recurso tiver decorator com swagger.parameters, a documentação será automaticamente atribuída ao argumento _parser.
             try:
                 data = UsuarioModel(**_parser.parse_args())
             except ValueError as e:
