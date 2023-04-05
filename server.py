@@ -65,7 +65,7 @@ class Usuarios(Resource):
     
     # Get:
     @swagger.tags('usuarios')
-    @swagger.response(response_code=200)
+    @swagger.response(response_code=200, summary='Retornar todos os usuários')
     def get(self):
         """
         Retorna todos os usuários.
@@ -104,7 +104,7 @@ class Usuarios(Resource):
 class Usuario(Resource):
     # Get:
     @swagger.tags('usuarios')
-    @swagger.response(response_code=200)
+    @swagger.response(response_code=200, summary='Retornar informações de um usuário específico')
     def get(self, login):
         """
         Retorna informações de um usuário específico.
@@ -118,7 +118,7 @@ class Usuario(Resource):
     
     # Put:
     @swagger.tags('usuarios')
-    @swagger.response(response_code=200)
+    @swagger.reorder_with(UsuarioModel, response_code=200, summary="Atualizar informações de um usuário específico")
     @swagger.parameter(_in='query', name='usuarios', schema=UsuarioModel, required=True, description='campos') 
     def put(self, login, _parser):
         """
@@ -138,14 +138,13 @@ class Usuario(Resource):
 
             PEOPLE[login]["password"] = password
             PEOPLE[login]["timestamp"] = get_timestamp()
-            return PEOPLE[login]
+            return PEOPLE[login], 200
         else:
             abort(404, message="Login "+login+ " nao encontrado")
-        return person, 200
         
     # Delete:
     @swagger.tags('usuarios')
-    @swagger.response(response_code=200)
+    @swagger.response(response_code=200, summary='Deletar um usuário específico')
     def delete(self, login):
         """
         Deleta um usuário específico.
@@ -158,8 +157,38 @@ class Usuario(Resource):
             abort(404, message="Login "+login+ " nao encontrado")
 
 
+class Autenticacao(Resource):
+
+    # Post:    
+    @swagger.tags('autenticacao')
+    @swagger.reorder_with(UsuarioModel, response_code=200, summary="Autenticar um Usuário")
+    @swagger.parameter(_in='query', name='usuarios', schema=UsuarioModel, required=True, description='campos')
+    def post(self, _parser):
+        """
+        Autenticar um  Usuário
+        """
+        # Valida o request body através do schema model:
+        try:
+            data = UsuarioModel(**_parser.parse_args())
+        except ValueError as e:
+            return ErrorModel(**{'message': e.args[0]}), 400
+        
+        # Insere o item:
+        login = data.get("login", None)
+        password = data.get("password", None)
+        if login in PEOPLE:
+            if password == PEOPLE[login]["password"]:
+                return "{login} autenticado com sucesso".format(login=login), 202
+            else:
+                abort(401, message="Password do login "+login+" invalido")
+        else:
+            abort(401, message="Login "+login+" nao existe")
+
+
+
 #####
-# Swagger/OpenAPI
+
+# Instead of coding your application from scratch, you may consider searching for an existing Flask Blueprint or Extension that you can reuse.
 
 def get_resources():
     """
@@ -173,6 +202,7 @@ def get_resources():
 
     api.add_resource(Usuarios, '/api/usuarios')
     api.add_resource(Usuario, '/api/usuarios/<string:login>')
+    api.add_resource(Autenticacao, '/api/auth')
 
     return api
 
@@ -196,9 +226,6 @@ with app.app_context():
         title='Usuários Microservice', version='1')#, servers=servers)
 
 app.register_blueprint(swagger_blueprint, url_prefix='/swagger')
-
-#####
-# Pagina inicial e executa a aplicação
 
 @app.route('/')
 def home(): 
