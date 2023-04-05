@@ -11,19 +11,9 @@ from flask_restful_swagger_3 import Schema
 
 from datetime import datetime
 
-######
-# Segurança e Autenticação
-
 app = Flask(__name__)
 CORS(app, resources={"/api/*": {"origins": "*"}})
 
-
-def auth(api_key, endpoint, method):
-    # Inserir código responsável para autorizar o uso da API. 
-    # Retorna True se o acesso for concedido, caso contrário, False.
-    return True
-
-swagger.auth = auth
 
 ######
 # Modelo de Entidade com suas propriedades
@@ -108,7 +98,7 @@ class Usuarios(Resource):
             }
             return "{login} criado com sucesso".format(login=login), 201
         else:
-            abort(406, message="Login {login} ja existe".format(login))
+            abort(406, message="Login "+login+" ja existe")
 
 
 class Usuario(Resource):
