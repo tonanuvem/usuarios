@@ -159,8 +159,7 @@ class Usuario(Resource):
 
 
 #####
-
-# Instead of coding your application from scratch, you may consider searching for an existing Flask Blueprint or Extension that you can reuse.
+# Swagger/OpenAPI
 
 def get_resources():
     """
@@ -197,6 +196,9 @@ with app.app_context():
         title='Usuários Microservice', version='1')#, servers=servers)
 
 app.register_blueprint(swagger_blueprint, url_prefix='/swagger')
+
+#####
+# Pagina inicial e executa a aplicação
 
 @app.route('/')
 def home(): 
